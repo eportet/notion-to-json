@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "csv-parser": "^2.3.3",
+    "markdown-json": "^1.4.1",
     "unzipper": "^0.10.11"
   }
 }
