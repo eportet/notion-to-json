@@ -1,4 +1,5 @@
-# Zip
+# Exported Files
+extracted/
 *.zip
 
 # Logs

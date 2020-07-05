@@ -3,7 +3,14 @@ import path from 'path'
 import unzipper from 'unzipper'
 import csv from 'csv-parser'
 
-const fromDir = (startPath = '.', filter = /.*/) => {
+/**
+ * Recursively returns all files matching the given filter
+ * @param {string} startPath Location of where to search files
+ * @param {RegExp} filter 
+ * @param {boolean | undefined} recursive Whether to check recursively in directory. Default true
+ * @returns {string[]} Array of files that match filter
+ */
+const matchingFiles = (startPath = '.', filter = /\..*$/, recursive = true) => {
     if (!fs.existsSync(startPath)) {
         console.log("no dir ",startPath);
         return;
@@ -15,7 +22,7 @@ const fromDir = (startPath = '.', filter = /.*/) => {
     for (let i = 0; i < files.length; i++) {
         const filename = path.join(startPath,files[i]);
         const stat = fs.lstatSync(filename);
-        if (stat.isDirectory()){
+        if (recursive && stat.isDirectory()){
             wantedFiles.push(...fromDir(filename,filter));
         }
         // Filename matches extension
@@ -29,17 +36,21 @@ const fromDir = (startPath = '.', filter = /.*/) => {
 };
 
 const main = async () => {
-    const zips = fromDir('.', /\.zip$/)
+    // List all zip files at directory
+    const zips = matchingFiles('.', /\.zip$/)
 
+    // Unzip all zip files into the `extracted` folder
     for await (const zip of zips) {
         // Extract zip file content
         fs.createReadStream(`./${zip}`).pipe(unzipper.Extract({ path: `./extracted/${zip}` }));
     }
             
-    const csvs = fromDir('./extracted',/\.csv$/)
+    // List all csv files found in extracted
+    const csvs = matchingFiles('./extracted',/\.csv$/)
      
     const data = []
 
+    // Extract csv data into `data`
     await fs.createReadStream(csvs[0])
         .pipe(csv())
         .on('data', (row) => {
